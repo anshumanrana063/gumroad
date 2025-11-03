@@ -60,7 +60,7 @@ export const PriceEditor = ({
         }
       >
         <div
-          className="dropdown"
+          className="relative mt-2 max-w-[calc(100vw-2rem)] rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]"
           style={{
             display: "grid",
             gap: "var(--spacer-4)",

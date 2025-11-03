@@ -866,7 +866,7 @@ const Form = ({
                     }
                   >
                     {discount ? (
-                      <div className="dropdown">
+                      <div className="relative mt-2 max-w-[calc(100vw-2rem)] rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]">
                         <DiscountInput discount={discount} setDiscount={setDiscount} currencyCode="usd" />
                       </div>
                     ) : null}
