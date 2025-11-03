@@ -1,9 +1,9 @@
-import cx from "classnames";
 import * as React from "react";
 import { CSSProperties } from "react";
 
 import { isOpenTuple } from "$app/utils/array";
 import { assert } from "$app/utils/assert";
+import { classNames } from "$app/utils/classNames";
 
 import { Button } from "$app/components/Button";
 import { useCurrentSeller } from "$app/components/CurrentSeller";
@@ -230,14 +230,17 @@ const MenubarItem = ({
 
   return menuItem.children.length > 0 ? (
     <div
-      className={cx("popover", { expanded: menuOpen })}
+      className={classNames("relative inline-block", {
+        "after:absolute after:top-full after:left-1/2 after:z-30 after:-translate-x-1/2 after:border-r-[0.5rem] after:border-b-[0.5rem] after:border-l-[0.5rem] after:border-r-transparent after:border-b-[var(--color-parent-border)] after:border-l-transparent after:content-['']":
+          menuOpen,
+      })}
       ref={ref}
       onMouseEnter={() => handleToggleMenu(true)}
       onMouseLeave={closeAfterDelay}
     >
       <a
         href={menuItem.href ?? "#"}
-        className={cx("pill button", { expandable: showExpandableIcon })}
+        className={classNames("pill button", { expandable: showExpandableIcon })}
         role="menuitem"
         aria-current={isHighlighted}
         aria-haspopup="menu"
@@ -250,7 +253,11 @@ const MenubarItem = ({
       >
         {menuItem.label}
       </a>
-      <div className="dropdown" hidden={!menuOpen} style={dropdownPosition}>
+      <div
+        className="absolute top-[calc(100%-0.0625rem)] z-30 w-max min-w-full shadow-[var(--shadow)] [--color:var(--contrast-filled)] before:hidden"
+        hidden={!menuOpen}
+        style={dropdownPosition}
+      >
         <ItemsList
           menuId={uid}
           menuItem={menuItem}
@@ -267,7 +274,7 @@ const MenubarItem = ({
     <div onMouseEnter={() => handleToggleMenu(true)} onMouseLeave={() => handleToggleMenu(false)}>
       <a
         href={menuItem.href ?? "#"}
-        className={cx("pill button", { expandable: showExpandableIcon })}
+        className={classNames("pill button", { expandable: showExpandableIcon })}
         role="menuitem"
         aria-current={isHighlighted}
         {...extraAriaAttrs}

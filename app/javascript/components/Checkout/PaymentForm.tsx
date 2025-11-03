@@ -11,7 +11,6 @@ import { DataCollector, PayPal } from "braintree-web";
 import * as BraintreeClient from "braintree-web/client";
 import * as BraintreeDataCollector from "braintree-web/data-collector";
 import * as BraintreePaypal from "braintree-web/paypal";
-import cx from "classnames";
 import * as React from "react";
 
 import { useBraintreeToken } from "$app/data/braintree_client_token_data";
@@ -27,6 +26,7 @@ import { createBillingAgreement, createBillingAgreementToken } from "$app/data/p
 import { PurchasePaymentMethod } from "$app/data/purchase";
 import { VerificationResult, verifyShippingAddress } from "$app/data/shipping";
 import { assert, assertDefined } from "$app/utils/assert";
+import { classNames } from "$app/utils/classNames";
 import { formatPriceCentsWithoutCurrencySymbol } from "$app/utils/currency";
 import { checkEmailForTypos as checkEmailForTyposUtil } from "$app/utils/email";
 import { asyncVoid } from "$app/utils/promise";
@@ -136,7 +136,7 @@ const StateInput = () => {
   }
 
   return (
-    <fieldset className={cx({ danger: errors.has("state") })}>
+    <fieldset className={classNames({ danger: errors.has("state") })}>
       <legend>
         <label htmlFor={`${uid}state`}>{stateLabel}</label>
       </legend>
@@ -175,7 +175,7 @@ const ZipCodeInput = () => {
   const label = state.country === "US" || state.country === "PH" ? "ZIP code" : "Postal";
 
   return (
-    <fieldset className={cx({ danger: errors.has("zipCode") })}>
+    <fieldset className={classNames({ danger: errors.has("zipCode") })}>
       <legend>
         <label htmlFor={`${uid}zipCode`}>{label}</label>
       </legend>
@@ -218,13 +218,19 @@ const EmailAddress = () => {
   return (
     <div>
       <div className="paragraphs">
-        <fieldset className={cx({ danger: errors.has("email") })}>
+        <fieldset className={classNames({ danger: errors.has("email") })}>
           <legend>
             <label htmlFor={`${uid}email`}>
               <h4>Email address</h4>
             </label>
           </legend>
-          <div className={cx("popover", { expanded: !!state.emailTypoSuggestion })} style={{ width: "100%" }}>
+          <div
+            className={classNames("relative inline-block", {
+              "after:absolute after:top-full after:left-1/2 after:z-30 after:-translate-x-1/2 after:border-r-[0.5rem] after:border-b-[0.5rem] after:border-l-[0.5rem] after:border-r-transparent after:border-b-[var(--color-parent-border)] after:border-l-transparent after:content-['']":
+                !!state.emailTypoSuggestion,
+            })}
+            style={{ width: "100%" }}
+          >
             <input
               id={`${uid}email`}
               type="email"
@@ -237,7 +243,7 @@ const EmailAddress = () => {
             />
 
             {state.emailTypoSuggestion ? (
-              <div className="dropdown grid gap-2">
+              <div className="absolute top-[calc(100%-0.0625rem)] z-30 grid w-max min-w-full gap-2 rounded border border-[var(--color-parent-border)] bg-background p-4 shadow-[var(--shadow)] [--color:var(--contrast-filled)] before:hidden">
                 <div>Did you mean {state.emailTypoSuggestion}?</div>
 
                 <div className="button-group">
@@ -384,7 +390,7 @@ const SharedInputs = () => {
               </div>
             ) : null}
             {showVatIdInput ? (
-              <fieldset className={cx({ danger: errors.has("vatId") })}>
+              <fieldset className={classNames({ danger: errors.has("vatId") })}>
                 <legend>
                   <label htmlFor={`${uid}vatId`}>{vatLabel}</label>
                 </legend>
@@ -503,7 +509,7 @@ const CustomerDetails = () => {
                 </label>
               ) : null}
             </h4>
-            <fieldset className={cx({ danger: errors.has("fullName") })}>
+            <fieldset className={classNames({ danger: errors.has("fullName") })}>
               <legend>
                 <label htmlFor={`${uid}fullName`}>Full name</label>
               </legend>
@@ -517,7 +523,7 @@ const CustomerDetails = () => {
                 onChange={(e) => dispatch({ type: "set-value", fullName: e.target.value })}
               />
             </fieldset>
-            <fieldset className={cx({ danger: errors.has("address") })}>
+            <fieldset className={classNames({ danger: errors.has("address") })}>
               <legend>
                 <label htmlFor={`${uid}address`}>Street address</label>
               </legend>
@@ -532,7 +538,7 @@ const CustomerDetails = () => {
               />
             </fieldset>
             <div style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "1fr", gap: "var(--spacer-2)" }}>
-              <fieldset className={cx({ danger: errors.has("city") })}>
+              <fieldset className={classNames({ danger: errors.has("city") })}>
                 <legend>
                   <label htmlFor={`${uid}city`}>City</label>
                 </legend>
@@ -552,7 +558,7 @@ const CustomerDetails = () => {
             <CountryInput />
           </div>
           {addressVerification && addressVerification.type !== "done" ? (
-            <div className="dropdown paragraphs">
+            <div className="paragraphs relative mt-2 max-w-[calc(100vw-2rem)] rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]">
               {addressVerification.type === "verification-required" ? (
                 <>
                   <div>
@@ -786,7 +792,7 @@ const TipSelector = () => {
           </div>
         ) : null}
         {state.tip.type === "fixed" ? (
-          <fieldset className={cx({ danger: errors.has("tip") })}>
+          <fieldset className={classNames({ danger: errors.has("tip") })}>
             <PriceInput
               hasError={errors.has("tip")}
               ariaLabel="Tip"
@@ -1141,7 +1147,7 @@ const StripePaymentRequest = () => {
         button: (
           <PaymentMethodRadio paymentMethod="stripePaymentRequest">
             <span
-              className={cx("brand-icon", {
+              className={classNames("brand-icon", {
                 "brand-icon-google": paymentMethods.googlePay,
                 "brand-icon-apple": paymentMethods.applePay,
               })}
@@ -1203,7 +1209,7 @@ export const PaymentForm = ({
   }, [state.status.type]);
 
   return (
-    <div ref={paymentFormRef} className={cx("stack", className)} aria-label="Payment form">
+    <div ref={paymentFormRef} className={classNames("stack", className)} aria-label="Payment form">
       {isTestPurchase ? (
         <div>
           <div role="alert" className="info">
