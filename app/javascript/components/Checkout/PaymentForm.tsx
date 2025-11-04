@@ -225,10 +225,15 @@ const EmailAddress = () => {
             </label>
           </legend>
           <div
-            className={classNames("relative inline-block", {
-              "after:absolute after:top-full after:left-1/2 after:z-30 after:-translate-x-1/2 after:border-r-[0.5rem] after:border-b-[0.5rem] after:border-l-[0.5rem] after:border-r-transparent after:border-b-[var(--color-parent-border)] after:border-l-transparent after:content-['']":
-                !!state.emailTypoSuggestion,
-            })}
+            className={classNames(
+              "relative inline-block",
+              !!state.emailTypoSuggestion && [
+                "after:content-['']",
+                "after:absolute after:top-full after:left-1/2 after:z-30 after:-translate-x-1/2",
+                "after:border-r-8 after:border-b-8 after:border-l-8",
+                "after:border-r-transparent after:border-b-[rgb(var(--parent-color)/var(--border-alpha))] after:border-l-transparent",
+              ],
+            )}
             style={{ width: "100%" }}
           >
             <input
@@ -243,7 +248,7 @@ const EmailAddress = () => {
             />
 
             {state.emailTypoSuggestion ? (
-              <div className="absolute top-[calc(100%-0.0625rem)] z-30 grid w-max min-w-full gap-2 rounded border border-parent-border bg-background p-4 shadow-[var(--shadow)] [--color:var(--contrast-filled)] before:hidden">
+              <div className="absolute top-14 z-30 grid w-max min-w-full gap-2 rounded border border-border bg-background p-4 shadow [--color:var(--contrast-filled)]">
                 <div>Did you mean {state.emailTypoSuggestion}?</div>
 
                 <div className="button-group">
