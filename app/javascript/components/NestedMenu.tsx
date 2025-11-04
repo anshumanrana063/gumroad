@@ -231,7 +231,10 @@ const MenubarItem = ({
   return menuItem.children.length > 0 ? (
     <div
       className={classNames("relative inline-block", {
-        "after:absolute after:top-full after:left-1/2 after:z-30 after:-translate-x-1/2 after:border-r-[0.5rem] after:border-b-[0.5rem] after:border-l-[0.5rem] after:border-r-transparent after:border-b-[var(--color-parent-border)] after:border-l-transparent after:content-['']":
+        "after:content-['']": menuOpen,
+        "after:absolute after:top-full after:left-1/2 after:z-30 after:-translate-x-1/2": menuOpen,
+        "after:border-r-8 after:border-b-8 after:border-l-8": menuOpen,
+        "after:border-r-transparent after:border-b-[rgb(var(--parent-color)/var(--border-alpha))] after:border-l-transparent":
           menuOpen,
       })}
       ref={ref}
@@ -254,7 +257,7 @@ const MenubarItem = ({
         {menuItem.label}
       </a>
       <div
-        className="absolute top-12 z-30 w-max min-w-full shadow [--color:var(--contrast-filled)] before:hidden"
+        className="absolute top-12 z-30 w-max min-w-full rounded border border-border bg-background shadow [--color:var(--contrast-filled)]"
         hidden={!menuOpen}
         style={dropdownPosition}
       >
