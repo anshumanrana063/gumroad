@@ -254,7 +254,7 @@ const MenubarItem = ({
         {menuItem.label}
       </a>
       <div
-        className="absolute top-[calc(100%-0.0625rem)] z-30 w-max min-w-full shadow-[var(--shadow)] [--color:var(--contrast-filled)] before:hidden"
+        className="absolute top-12 z-30 w-max min-w-full shadow [--color:var(--contrast-filled)] before:hidden"
         hidden={!menuOpen}
         style={dropdownPosition}
       >
