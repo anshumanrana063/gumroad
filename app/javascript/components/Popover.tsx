@@ -52,21 +52,21 @@ export const Popover = ({
     if (focusElement instanceof HTMLElement) focusElement.focus();
   }, [open]);
 
-  const hasButton = React.useMemo(() => ref.current?.querySelector("summary button") !== null, [open, trigger]);
+  const hasSummaryButton = React.useMemo(() => ref.current?.querySelector("summary button") !== null, [open, trigger]);
 
   return (
     <Details
       className={classNames(
         "popover relative inline-block",
-        "[&>summary]:grid-cols-[1fr] [&>summary]:before:content-none [&[open]>summary]:mb-0",
+        open && [
+          "after:content-['']",
+          "after:absolute after:top-full after:left-1/2 after:z-30 after:-translate-x-1/2",
+          "after:border-r-8 after:border-b-8 after:border-l-8",
+          "after:border-r-transparent after:border-b-[rgb(var(--parent-color)/var(--border-alpha))] after:border-l-transparent",
+        ],
+        position === "top" && "after:top-auto after:bottom-full after:border after:border-t after:border-b-0",
+        hasSummaryButton && position === "top" && "after:mb-1",
         className,
-        {
-          "after:absolute after:top-full after:left-1/2 after:z-30 after:-translate-x-1/2 after:border-r-[0.5rem] after:border-b-[0.5rem] after:border-l-[0.5rem] after:border-r-transparent after:border-b-[var(--color-parent-border)] after:border-l-transparent after:content-['']":
-            open && position !== "top",
-          "after:absolute after:bottom-full after:left-1/2 after:z-30 after:-translate-x-1/2 after:border-t-[0.5rem] after:border-r-[0.5rem] after:border-l-[0.5rem] after:border-t-[var(--color-parent-border)] after:border-r-transparent after:border-l-transparent after:content-['']":
-            open && position === "top",
-          "after:mb-1": open && position === "top" && hasButton,
-        },
       )}
       summary={trigger}
       summaryProps={{
@@ -82,19 +82,12 @@ export const Popover = ({
     >
       <div
         className={classNames(
-          "dropdown absolute z-30 w-max min-w-full",
-          "rounded border border-border bg-background p-4",
-          "max-w-[calc(100vw-2rem)] [--color:var(--contrast-filled)]",
-          "[&>[role=menu]:only-child]:-m-4 [&>[role=menu]:only-child]:max-w-[calc(100%+2rem)] [&>[role=menu]:only-child]:border-0 [&>[role=menu]:only-child]:shadow-none",
-          "[&>.stack:only-child]:-m-4 [&>.stack:only-child]:max-w-[calc(100%+2rem)] [&>.stack:only-child]:border-0 [&>.stack:only-child]:shadow-none",
-          {
-            "top-[calc(100%-0.0625rem)]": position !== "top",
-            "top-auto bottom-[calc(100%+0.4375rem)]": position === "top",
-            "-ml-1": hasButton,
-            "mb-1": hasButton && position === "top",
-            "shadow-[var(--shadow)]": position !== "top",
-            "shadow-none": position === "top",
-          },
+          "dropdown absolute top-14 z-30 w-max min-w-full rounded border border-border bg-background shadow [--color:var(--contrast-filled)]",
+          hasSummaryButton && "ml-1",
+          hasSummaryButton && position === "top" && "mb-1",
+          position === "top" && "top-auto bottom-16 shadow-none",
+          "[&>[role='menu']:only-child]:border-none [&>[role='menu']:only-child]:shadow-none",
+          "[&>.stack:only-child]:border-none [&>.stack:only-child]:shadow-none",
         )}
         style={dropoverPosition}
       >
