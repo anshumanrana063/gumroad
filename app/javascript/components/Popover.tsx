@@ -86,8 +86,8 @@ export const Popover = ({
           hasSummaryButton && "ml-1",
           hasSummaryButton && position === "top" && "mb-1",
           position === "top" && "top-auto bottom-[calc(100%+0.5rem-1px)] shadow-none",
-          "[&>[role='menu']:only-child]:-m-4 [&>[role='menu']:only-child]:border-none [&>[role='menu']:only-child]:shadow-none",
-          "[&>.stack:only-child]:-m-4 [&>.stack:only-child]:border-none [&>.stack:only-child]:shadow-none",
+          "[&>[role='menu']:only-child]:-m-4 [&>[role='menu']:only-child]:max-w-[calc(100%+2rem)] [&>[role='menu']:only-child]:border-none [&>[role='menu']:only-child]:shadow-none",
+          "[&>.stack:only-child]:-m-4 [&>.stack:only-child]:max-w-[calc(100%+2rem)] [&>.stack:only-child]:border-none [&>.stack:only-child]:shadow-none",
         )}
         style={dropoverPosition}
       >
