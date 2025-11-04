@@ -57,14 +57,14 @@ export const Popover = ({
   return (
     <Details
       className={classNames(
-        "popover relative inline-block",
+        "popover toggle relative inline-block",
         open && [
           "after:content-['']",
           "after:absolute after:top-full after:left-1/2 after:z-30 after:-translate-x-1/2",
           "after:border-r-8 after:border-b-8 after:border-l-8",
           "after:border-r-transparent after:border-b-[rgb(var(--parent-color)/var(--border-alpha))] after:border-l-transparent",
         ],
-        position === "top" && "after:top-auto after:bottom-full after:border after:border-t after:border-b-0",
+        position === "top" && "after:top-auto after:bottom-full after:border after:border-t-8 after:border-b-0",
         hasSummaryButton && position === "top" && "after:mb-1",
         className,
       )}
@@ -82,12 +82,12 @@ export const Popover = ({
     >
       <div
         className={classNames(
-          "dropdown absolute top-14 z-30 w-max min-w-full rounded border border-border bg-background shadow [--color:var(--contrast-filled)]",
+          "dropdown top-[calc(100% - var(--border-width))] absolute z-30 mt-2 w-max min-w-full rounded border border-border bg-background p-4 shadow [--color:var(--contrast-filled)] before:bottom-full before:left-3 before:hidden",
           hasSummaryButton && "ml-1",
           hasSummaryButton && position === "top" && "mb-1",
-          position === "top" && "top-auto bottom-16 shadow-none",
-          "[&>[role='menu']:only-child]:border-none [&>[role='menu']:only-child]:shadow-none",
-          "[&>.stack:only-child]:border-none [&>.stack:only-child]:shadow-none",
+          position === "top" && "top-auto bottom-[calc(100%+0.5rem-1px)] shadow-none",
+          "[&>[role='menu']:only-child]:-m-4 [&>[role='menu']:only-child]:border-none [&>[role='menu']:only-child]:shadow-none",
+          "[&>.stack:only-child]:-m-4 [&>.stack:only-child]:border-none [&>.stack:only-child]:shadow-none",
         )}
         style={dropoverPosition}
       >
