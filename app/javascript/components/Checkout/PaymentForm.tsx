@@ -243,7 +243,7 @@ const EmailAddress = () => {
             />
 
             {state.emailTypoSuggestion ? (
-              <div className="absolute top-[calc(100%-0.0625rem)] z-30 grid w-max min-w-full gap-2 rounded border border-[var(--color-parent-border)] bg-background p-4 shadow-[var(--shadow)] [--color:var(--contrast-filled)] before:hidden">
+              <div className="absolute top-[calc(100%-0.0625rem)] z-30 grid w-max min-w-full gap-2 rounded border border-parent-border bg-background p-4 shadow-[var(--shadow)] [--color:var(--contrast-filled)] before:hidden">
                 <div>Did you mean {state.emailTypoSuggestion}?</div>
 
                 <div className="button-group">
@@ -558,7 +558,7 @@ const CustomerDetails = () => {
             <CountryInput />
           </div>
           {addressVerification && addressVerification.type !== "done" ? (
-            <div className="paragraphs mt-2 rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]">
+            <div className="paragraphs mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled">
               {addressVerification.type === "verification-required" ? (
                 <>
                   <div>

@@ -29,7 +29,7 @@ export const MaxPurchaseCountToggle = ({
         </Toggle>
       }
     >
-      <div className="mt-2 rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]">
+      <div className="mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled">
         <fieldset>
           <label htmlFor={`${uid}-max-purchase-count`}>Maximum number of purchases</label>
           <WithTooltip tip="Total sales">

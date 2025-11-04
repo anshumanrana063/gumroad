@@ -52,7 +52,7 @@ export const RefundPolicySelector = ({
         </Toggle>
       }
     >
-      <div className="paragraphs mt-2 rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]">
+      <div className="paragraphs mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled">
         <fieldset>
           <legend>
             <label htmlFor={`${uid}-max-refund-period-in-days`}>Refund period</label>

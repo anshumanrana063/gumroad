@@ -60,7 +60,7 @@ export const PriceEditor = ({
         }
       >
         <div
-          className="mt-2 rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]"
+          className="mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled"
           style={{
             display: "grid",
             gap: "var(--spacer-4)",

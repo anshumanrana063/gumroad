@@ -284,7 +284,7 @@ const TierEditor = ({
             className="toggle"
             open={tier.customizable_price}
           >
-            <div className="mt-2 rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]">
+            <div className="mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled">
               <div
                 style={{
                   display: "grid",
@@ -424,7 +424,7 @@ You can modify or cancel your membership at any time.`;
       className="toggle"
       open={tier.apply_price_changes_to_existing_memberships}
     >
-      <div className="mt-2 rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]">
+      <div className="mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled">
         <div className="grid gap-6">
           {initialEffectiveDate ? (
             <div role="alert" className="warning">

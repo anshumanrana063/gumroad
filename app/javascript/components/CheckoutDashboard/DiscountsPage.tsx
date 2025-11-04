@@ -982,7 +982,7 @@ const Form = ({
                 </label>
               }
             >
-              <div className="mt-2 rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]">
+              <div className="mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled">
                 <fieldset className={cx({ danger: maxQuantity.error })}>
                   <legend>
                     <label htmlFor={`${uid}quantity`}>Quantity</label>
@@ -1016,7 +1016,7 @@ const Form = ({
               }
             >
               <div
-                className="mt-2 rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]"
+                className="mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fit, minmax(var(--dynamic-grid), 1fr))",
@@ -1076,7 +1076,7 @@ const Form = ({
                 </label>
               }
             >
-              <div className="mt-2 rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]">
+              <div className="mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled">
                 <fieldset className={cx({ danger: minimumAmount.error })}>
                   <legend>
                     <label htmlFor={`${uid}minimumAmount`}>Minimum amount</label>
@@ -1107,7 +1107,7 @@ const Form = ({
                 </label>
               }
             >
-              <div className="mt-2 rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]">
+              <div className="mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled">
                 <fieldset className={cx({ danger: minimumQuantity.error })}>
                   <legend>
                     <label htmlFor={`${uid}minimumQuantity`}>Minimum quantity per product</label>

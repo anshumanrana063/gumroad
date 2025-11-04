@@ -866,7 +866,7 @@ const Form = ({
                     }
                   >
                     {discount ? (
-                      <div className="relative mt-2 rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]">
+                      <div className="relative mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled">
                         <DiscountInput discount={discount} setDiscount={setDiscount} currencyCode="usd" />
                       </div>
                     ) : null}
