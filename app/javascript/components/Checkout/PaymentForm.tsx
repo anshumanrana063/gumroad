@@ -558,7 +558,7 @@ const CustomerDetails = () => {
             <CountryInput />
           </div>
           {addressVerification && addressVerification.type !== "done" ? (
-            <div className="paragraphs relative mt-2 max-w-[calc(100vw-2rem)] rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]">
+            <div className="paragraphs mt-2 rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]">
               {addressVerification.type === "verification-required" ? (
                 <>
                   <div>

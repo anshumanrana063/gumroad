@@ -27,7 +27,7 @@ export const ToggleSettingRow = ({ label, value, help, onChange, dropdown, disab
   );
   return dropdown ? (
     <Details summary={toggle} className="toggle" open={value}>
-      <div className="relative mt-2 max-w-[calc(100vw-2rem)] rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]">
+      <div className="mt-2 rounded border border-[var(--color-parent-border)] bg-background p-4 text-[var(--color-contrast-filled)]">
         {dropdown}
       </div>
     </Details>
