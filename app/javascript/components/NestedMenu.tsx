@@ -230,13 +230,15 @@ const MenubarItem = ({
 
   return menuItem.children.length > 0 ? (
     <div
-      className={classNames("relative inline-block", {
-        "after:content-['']": menuOpen,
-        "after:absolute after:top-full after:left-1/2 after:z-30 after:-translate-x-1/2": menuOpen,
-        "after:border-r-8 after:border-b-8 after:border-l-8": menuOpen,
-        "after:border-r-transparent after:border-b-[rgb(var(--parent-color)/var(--border-alpha))] after:border-l-transparent":
-          menuOpen,
-      })}
+      className={classNames(
+        "relative inline-block",
+        menuOpen && [
+          "after:content-['']",
+          "after:absolute after:top-full after:left-1/2 after:z-30 after:-translate-x-1/2",
+          "after:border-r-8 after:border-b-8 after:border-l-8",
+          "after:border-r-transparent after:border-b-[rgb(var(--parent-color)/var(--border-alpha))] after:border-l-transparent",
+        ],
+      )}
       ref={ref}
       onMouseEnter={() => handleToggleMenu(true)}
       onMouseLeave={closeAfterDelay}
