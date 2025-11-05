@@ -55,6 +55,7 @@ import { LoadingSpinner } from "$app/components/LoadingSpinner";
 import { useLoggedInUser } from "$app/components/LoggedInUser";
 import { PriceInput } from "$app/components/PriceInput";
 import { showAlert } from "$app/components/server-components/Alert";
+import { Dropdown } from "$app/components/ui/Dropdown";
 import { Tabs } from "$app/components/ui/Tabs";
 import { useIsDarkTheme } from "$app/components/useIsDarkTheme";
 import { useOnChangeSync } from "$app/components/useOnChange";
@@ -563,7 +564,7 @@ const CustomerDetails = () => {
             <CountryInput />
           </div>
           {addressVerification && addressVerification.type !== "done" ? (
-            <div className="paragraphs mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled">
+            <Dropdown className="paragraphs">
               {addressVerification.type === "verification-required" ? (
                 <>
                   <div>
@@ -597,7 +598,7 @@ const CustomerDetails = () => {
                   <Button onClick={verifyAddress}>Yes, it is</Button>
                 </>
               )}
-            </div>
+            </Dropdown>
           ) : null}
         </div>
       ) : null}

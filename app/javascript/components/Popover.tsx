@@ -64,8 +64,10 @@ export const Popover = ({
           "after:border-r-8 after:border-b-8 after:border-l-8",
           "after:border-r-transparent after:border-b-[rgb(var(--parent-color)/var(--border-alpha))] after:border-l-transparent",
         ],
-        position === "top" && "after:top-auto after:bottom-full after:border after:border-t-8 after:border-b-0",
-        hasSummaryButton && position === "top" && "after:mb-1",
+        open &&
+          position === "top" &&
+          "after:top-auto after:bottom-full after:border-t-8 after:border-b-0 after:border-t-[rgb(var(--parent-color)/var(--border-alpha))]",
+        open && hasSummaryButton && position === "top" && "after:mb-1",
         className,
       )}
       summary={trigger}
@@ -82,7 +84,7 @@ export const Popover = ({
     >
       <div
         className={classNames(
-          "dropdown top-[calc(100% - var(--border-width))] absolute z-30 mt-2 w-max min-w-full rounded border border-border bg-background p-4 shadow [--color:var(--contrast-filled)] before:bottom-full before:left-3 before:hidden",
+          "dropdown top-[calc(100% - var(--border-width))] absolute z-30 mt-2 w-max min-w-full rounded border border-border bg-background p-4 shadow [--color:var(--contrast-filled)]",
           hasSummaryButton && "ml-1",
           hasSummaryButton && position === "top" && "mb-1",
           position === "top" && "top-auto bottom-[calc(100%+0.5rem-1px)] shadow-none",
