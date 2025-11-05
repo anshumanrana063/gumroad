@@ -38,10 +38,8 @@
   --color-muted-foreground: rgb(var(--color) / var(--gray-1));
   --color-success: rgb(var(--success));
   --color-danger: rgb(var(--danger));
-  --color-parent-border: rgb(var(--parent-color) / var(--border-alpha));
-  --color-contrast-filled: rgb(var(--contrast-filled));
 
-  --shadow: 0.25rem 0.25rem 0 rgb(var(--color));
+  --shadow: 0.25rem 0.25rem 0 currentColor;
   --shadow-lg: 0.5rem 0.5rem 0 currentColor;
 
   --spacing-product-page: 75.25rem;
