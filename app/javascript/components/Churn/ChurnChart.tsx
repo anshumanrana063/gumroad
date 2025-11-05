@@ -5,7 +5,7 @@ import { XAxis, YAxis, Line, Area } from "recharts";
 import useChartTooltip from "$app/components/Analytics/useChartTooltip";
 import { Chart, xAxisProps, yAxisProps, lineProps } from "$app/components/Chart";
 
-import ChartTooltip from "./ChartToolTip";
+import ChartTooltip from "./ChartTooltip";
 
 type ChurnDailyData = {
   date: string;
