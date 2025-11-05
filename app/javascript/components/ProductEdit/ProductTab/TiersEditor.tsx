@@ -285,46 +285,48 @@ const TierEditor = ({
             className="toggle"
             open={tier.customizable_price}
           >
-            <Dropdown
-              style={{
-                display: "grid",
-                gap: "var(--spacer-3)",
-                gridTemplateColumns: "repeat(auto-fit, max(var(--dynamic-grid), 50% - var(--spacer-3) / 2))",
-              }}
-            >
-              {Object.entries(tier.recurrence_price_values).flatMap(([recurrence, value]) =>
-                value.enabled ? (
-                  <React.Fragment key={recurrence}>
-                    <fieldset>
-                      <label htmlFor={`${uid}-${recurrence}-minimum-price`}>
-                        Minimum amount {perRecurrenceLabels[recurrence]}
-                      </label>
-                      <PriceInput
-                        id={`${uid}-${recurrence}-minimum-price`}
-                        currencyCode={currencyType}
-                        cents={value.price_cents}
-                        disabled
-                      />
-                    </fieldset>
-                    <fieldset>
-                      <label htmlFor={`${uid}-${recurrence}-suggested-price`}>
-                        Suggested amount {perRecurrenceLabels[recurrence]}
-                      </label>
-                      <PriceInput
-                        id={`${uid}-${recurrence}-suggested-price`}
-                        currencyCode={currencyType}
-                        cents={value.suggested_price_cents}
-                        onChange={(suggested_price_cents) =>
-                          updateRecurrencePriceValue(recurrence, { suggested_price_cents })
-                        }
-                        placeholder={PLACEHOLDER_VALUES[recurrence]}
-                      />
-                    </fieldset>
-                  </React.Fragment>
-                ) : (
-                  []
-                ),
-              )}
+            <Dropdown>
+              <div
+                style={{
+                  display: "grid",
+                  gap: "var(--spacer-3)",
+                  gridTemplateColumns: "repeat(auto-fit, max(var(--dynamic-grid), 50% - var(--spacer-3) / 2))",
+                }}
+              >
+                {Object.entries(tier.recurrence_price_values).flatMap(([recurrence, value]) =>
+                  value.enabled ? (
+                    <React.Fragment key={recurrence}>
+                      <fieldset>
+                        <label htmlFor={`${uid}-${recurrence}-minimum-price`}>
+                          Minimum amount {perRecurrenceLabels[recurrence]}
+                        </label>
+                        <PriceInput
+                          id={`${uid}-${recurrence}-minimum-price`}
+                          currencyCode={currencyType}
+                          cents={value.price_cents}
+                          disabled
+                        />
+                      </fieldset>
+                      <fieldset>
+                        <label htmlFor={`${uid}-${recurrence}-suggested-price`}>
+                          Suggested amount {perRecurrenceLabels[recurrence]}
+                        </label>
+                        <PriceInput
+                          id={`${uid}-${recurrence}-suggested-price`}
+                          currencyCode={currencyType}
+                          cents={value.suggested_price_cents}
+                          onChange={(suggested_price_cents) =>
+                            updateRecurrencePriceValue(recurrence, { suggested_price_cents })
+                          }
+                          placeholder={PLACEHOLDER_VALUES[recurrence]}
+                        />
+                      </fieldset>
+                    </React.Fragment>
+                  ) : (
+                    []
+                  ),
+                )}
+              </div>
             </Dropdown>
           </Details>
           <PriceChangeSettings tier={tier} updateTier={updateTier} />
