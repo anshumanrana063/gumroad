@@ -23,7 +23,7 @@ class ChurnController < Sellers::BaseController
                  }
                end
              },
-             churn_data: InertiaRails.optional { service.fetch_churn_data }
+             churn_data: service.fetch_churn_data
            }
   end
 end

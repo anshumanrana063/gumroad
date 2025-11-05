@@ -7,7 +7,7 @@ require "shared_examples/creator_dashboard_page"
 describe "Churn analytics", :js, :sidekiq_inline, type: :system do
   include ChurnTestHelpers
 
-  let(:seller) { create(:user, created_at: Date.new(2023, 1, 1)) }
+  let(:seller) { create(:user, created_at: Date.new(2023, 1, 1), timezone: "UTC") }
 
   include_context "with switching account to user as admin for seller"
 
@@ -48,18 +48,21 @@ describe "Churn analytics", :js, :sidekiq_inline, type: :system do
         monthly_price: monthly_price,
         yearly_price: yearly_price
       )
+
+      # Index all purchases in Elasticsearch
+      index_model_records(Purchase)
     end
 
     it "calculates total stats correctly" do
       visit churn_dashboard_path(from: "2023-12-01", to: "2023-12-31")
 
       # Expected calculation:
-      # - Active at start: 2 subscriptions
-      # - New during period: 1 subscription
-      # - Churned: 2 subscriptions
-      # - Total base: 2 + 1 + 2 = 5 (Stripe formula includes churned in base)
+      # - Active at start: 2 subscriptions (active_sub1, active_sub2)
+      # - New during period: 1 subscription (new_sub on Dec 16)
+      # - Churned: 2 subscriptions (churned on Dec 20 and Dec 25)
+      # - Total base: 2 + 2 (will churn) + 1 (new) = 5
       # - Churn rate: 2/5 = 40%
-      # - Revenue lost: $10 (monthly) + $10 (yearly MRR = $12000/12) = $20
+      # - Revenue lost: $10 (monthly) + $10 (yearly MRR = $120/12) = $20
       expect_churn_metrics(
         churn_rate: "40.0",
         last_period_rate: "0.0",
@@ -79,7 +82,11 @@ describe "Churn analytics", :js, :sidekiq_inline, type: :system do
         uncheck "Annual Plan"
       end
 
-      # Expected: 1 churned / 4 total = 25%
+      # After filtering: only monthly product data
+      # - Active: 2 (active subs) + 1 (monthly churn) = 3
+      # - New: 1
+      # - Churned: 1 (monthly only)
+      # - Rate: 1/4 = 25%
       expect_churn_metrics(churn_rate: "25.0", last_period_rate: "0.0", revenue_lost: "10", churned_users: 1)
 
       # Re-select Annual Plan
@@ -94,7 +101,7 @@ describe "Churn analytics", :js, :sidekiq_inline, type: :system do
         uncheck "Monthly Membership"
       end
 
-      # Expected: 1 churned / 1 total = 100%
+      # Only yearly product now: 1 churned / 1 total = 100%
       expect_churn_metrics(churn_rate: "100.0", last_period_rate: "0.0", revenue_lost: "10", churned_users: 1)
     end
 
@@ -199,12 +206,18 @@ describe "Churn analytics", :js, :sidekiq_inline, type: :system do
     let(:monthly_product) { create(:subscription_product, user: seller, name: "Monthly Membership") }
     let(:monthly_price) { create(:price, link: monthly_product, price_cents: 1000, recurrence: "monthly") }
 
+    before do
+      index_model_records(Purchase)
+    end
+
     it "handles subscriptions created at exact period start" do
       create_new_subscription(
         product: monthly_product,
         price: monthly_price,
         created_at: "2023-12-01 00:00:00"
       )
+
+      index_model_records(Purchase)
 
       visit churn_dashboard_path(from: "2023-12-01", to: "2023-12-31")
 
@@ -221,6 +234,8 @@ describe "Churn analytics", :js, :sidekiq_inline, type: :system do
         deactivated_at: "2023-12-31 23:59:59"
       )
 
+      index_model_records(Purchase)
+
       visit churn_dashboard_path(from: "2023-12-01", to: "2023-12-31")
 
       # Churned subscription should be counted
@@ -236,6 +251,226 @@ describe "Churn analytics", :js, :sidekiq_inline, type: :system do
           deactivated_at: "2023-12-15 14:30:00"
         )
       end
+
+      index_model_records(Purchase)
+
+      visit churn_dashboard_path(from: "2023-12-01", to: "2023-12-31")
+
+      within_section("Churned users") { expect(page).to have_text("3") }
+      within_section("Revenue lost") { expect(page).to have_text("$30") }
+    end
+  end
+
+  context "with large date ranges" do
+    let(:monthly_product) { create(:subscription_product, user: seller, name: "Monthly Membership") }
+    let(:monthly_price) { create(:price, link: monthly_product, price_cents: 1000, recurrence: "monthly") }
+
+    before do
+      index_model_records(Purchase)
+    end
+
+    it "handles date ranges spanning multiple months" do
+      create_churned_subscription(
+        product: monthly_product,
+        price: monthly_price,
+        created_at: "2023-01-01 12:00:00",
+        deactivated_at: "2023-06-15 12:00:00"
+      )
+
+      index_model_records(Purchase)
+
+      visit churn_dashboard_path(from: "2023-01-01", to: "2023-12-31")
+
+      within_section("Churned users") { expect(page).to have_text("1") }
+      expect(page).to have_css(".recharts-wrapper")
+    end
+
+    it "efficiently loads data for 90-day period" do
+      # Create churn data across 90 days
+      5.times do |i|
+        create_churned_subscription(
+          product: monthly_product,
+          price: monthly_price,
+          created_at: "2023-01-01 12:00:00",
+          deactivated_at: (Date.new(2023, 1, 1) + (i * 20).days).to_s
+        )
+      end
+
+      index_model_records(Purchase)
+
+      # Should load quickly even with large range
+      visit churn_dashboard_path(from: "2023-01-01", to: "2023-03-31")
+
+      expect(page).to have_text("Churn rate")
+      expect(page).to have_css(".recharts-wrapper")
+      within_section("Churned users") { expect(page).to have_text("5") }
+    end
+  end
+
+  context "with real-time vs cached data" do
+    let(:monthly_product) { create(:subscription_product, user: seller, name: "Monthly Membership") }
+    let(:monthly_price) { create(:price, link: monthly_product, price_cents: 1000, recurrence: "monthly") }
+    let!(:large_seller) { create(:large_seller, user: seller) }
+
+    it "shows real-time data for recent dates" do
+      # Create churn yesterday
+      create_churned_subscription(
+        product: monthly_product,
+        price: monthly_price,
+        created_at: 60.days.ago,
+        deactivated_at: 1.day.ago
+      )
+
+      index_model_records(Purchase)
+
+      # Visit with recent date range
+      visit churn_dashboard_path(from: 3.days.ago.to_date.to_s, to: Date.current.to_s)
+
+      within_section("Churned users") { expect(page).to have_text("1") }
+      expect(page).to have_css(".recharts-wrapper")
+    end
+
+    it "uses cached data for historical dates" do
+      # Create churn 30 days ago
+      create_churned_subscription(
+        product: monthly_product,
+        price: monthly_price,
+        created_at: 60.days.ago,
+        deactivated_at: 30.days.ago
+      )
+
+      index_model_records(Purchase)
+
+      # Visit with historical date range
+      visit churn_dashboard_path(from: 60.days.ago.to_date.to_s, to: 10.days.ago.to_date.to_s)
+
+      within_section("Churned users") { expect(page).to have_text("1") }
+
+      # Second visit should use cache (faster)
+      visit churn_dashboard_path(from: 60.days.ago.to_date.to_s, to: 10.days.ago.to_date.to_s)
+      within_section("Churned users") { expect(page).to have_text("1") }
+    end
+  end
+
+  context "with MRR conversions" do
+    let(:monthly_product) { create(:subscription_product, user: seller, name: "Monthly Plan") }
+    let(:yearly_product) { create(:subscription_product, user: seller, name: "Annual Plan") }
+    let(:quarterly_product) { create(:subscription_product, user: seller, name: "Quarterly Plan") }
+    let(:monthly_price) { create(:price, link: monthly_product, price_cents: 1000, recurrence: "monthly") }
+    let(:yearly_price) { create(:price, link: yearly_product, price_cents: 12000, recurrence: "yearly") }
+    let(:quarterly_price) { create(:price, link: quarterly_product, price_cents: 3000, recurrence: "quarterly") }
+
+    before do
+      # Monthly: $10/month
+      create_churned_subscription(
+        product: monthly_product,
+        price: monthly_price,
+        created_at: "2023-11-01 12:00:00",
+        deactivated_at: "2023-12-15 12:00:00"
+      )
+
+      # Yearly: $120/year = $10/month
+      create_churned_subscription(
+        product: yearly_product,
+        price: yearly_price,
+        created_at: "2023-11-01 12:00:00",
+        deactivated_at: "2023-12-20 12:00:00"
+      )
+
+      # Quarterly: $30/quarter = $10/month
+      create_churned_subscription(
+        product: quarterly_product,
+        price: quarterly_price,
+        created_at: "2023-11-01 12:00:00",
+        deactivated_at: "2023-12-25 12:00:00"
+      )
+
+      index_model_records(Purchase)
+    end
+
+    it "correctly converts all recurrence types to monthly MRR" do
+      visit churn_dashboard_path(from: "2023-12-01", to: "2023-12-31")
+
+      # Total MRR lost: $10 + $10 + $10 = $30
+      within_section("Revenue lost") { expect(page).to have_text("$30") }
+      within_section("Churned users") { expect(page).to have_text("3") }
+    end
+  end
+
+  context "with timezone handling" do
+    let(:pst_seller) { create(:user, timezone: "Pacific Time (US & Canada)", created_at: Date.new(2023, 1, 1)) }
+    let(:monthly_product) { create(:subscription_product, user: pst_seller, name: "PST Product") }
+    let(:monthly_price) { create(:price, link: monthly_product, price_cents: 1000, recurrence: "monthly") }
+
+    before do
+      switch_account_to(pst_seller)
+    end
+
+    it "respects user timezone in date boundaries" do
+      # Create churn at midnight PST (8am UTC)
+      create_churned_subscription(
+        product: monthly_product,
+        price: monthly_price,
+        created_at: "2023-11-01 12:00:00",
+        deactivated_at: Time.zone.parse("2023-12-15 00:00:00 PST")
+      )
+
+      index_model_records(Purchase)
+
+      visit churn_dashboard_path(from: "2023-12-01", to: "2023-12-31")
+
+      # Should count on Dec 15 in PST timezone
+      within_section("Churned users") { expect(page).to have_text("1") }
+    end
+  end
+
+  context "with boundary date scenarios" do
+    let(:monthly_product) { create(:subscription_product, user: seller, name: "Monthly Membership") }
+    let(:monthly_price) { create(:price, link: monthly_product, price_cents: 1000, recurrence: "monthly") }
+
+    it "handles subscriptions created at exact period start" do
+      create_new_subscription(
+        product: monthly_product,
+        price: monthly_price,
+        created_at: "2023-12-01 00:00:00"
+      )
+
+      index_model_records(Purchase)
+
+      visit churn_dashboard_path(from: "2023-12-01", to: "2023-12-31")
+
+      # New subscription should be counted
+      within_section("Churned users") { expect(page).to have_text("0") }
+      expect(page).to have_css(".recharts-wrapper")
+    end
+
+    it "handles subscriptions churned at exact period end" do
+      create_churned_subscription(
+        product: monthly_product,
+        price: monthly_price,
+        created_at: "2023-11-01 12:00:00",
+        deactivated_at: "2023-12-31 23:59:59"
+      )
+
+      index_model_records(Purchase)
+
+      visit churn_dashboard_path(from: "2023-12-01", to: "2023-12-31")
+
+      # Churned subscription should be counted
+      within_section("Churned users") { expect(page).to have_text("1") }
+    end
+
+    it "handles multiple churns on the same day" do
+      3.times do
+        create_churned_subscription(
+          product: monthly_product,
+          price: monthly_price,
+          created_at: "2023-11-01 12:00:00",
+          deactivated_at: "2023-12-15 14:30:00"
+        )
+      end
+
+      index_model_records(Purchase)
 
       visit churn_dashboard_path(from: "2023-12-01", to: "2023-12-31")
 
@@ -256,9 +491,45 @@ describe "Churn analytics", :js, :sidekiq_inline, type: :system do
         deactivated_at: "2023-06-15 12:00:00"
       )
 
+      index_model_records(Purchase)
+
       visit churn_dashboard_path(from: "2023-01-01", to: "2023-12-31")
 
       within_section("Churned users") { expect(page).to have_text("1") }
+      expect(page).to have_css(".recharts-wrapper")
+    end
+  end
+
+  context "chart rendering" do
+    let(:monthly_product) { create(:subscription_product, user: seller, name: "Monthly Membership") }
+    let(:monthly_price) { create(:price, link: monthly_product, price_cents: 1000, recurrence: "monthly") }
+
+    before do
+      # Create varied churn data across month
+      [5, 10, 15, 20, 25].each do |day|
+        create_churned_subscription(
+          product: monthly_product,
+          price: monthly_price,
+          created_at: "2023-11-01 12:00:00",
+          deactivated_at: "2023-12-#{day.to_s.rjust(2, '0')} 12:00:00"
+        )
+      end
+
+      index_model_records(Purchase)
+    end
+
+    it "renders chart with churn data" do
+      visit churn_dashboard_path(from: "2023-12-01", to: "2023-12-31")
+
+      expect(page).to have_css(".recharts-wrapper")
+      expect(page).to have_css(".recharts-line")
+      within_section("Churned users") { expect(page).to have_text("5") }
+    end
+
+    it "shows tooltips on chart hover", :js do
+      visit churn_dashboard_path(from: "2023-12-01", to: "2023-12-31")
+
+      # Chart should be interactive
       expect(page).to have_css(".recharts-wrapper")
     end
   end

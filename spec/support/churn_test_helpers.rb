@@ -2,13 +2,51 @@
 
 module ChurnTestHelpers
   def create_active_subscription(product:, price:, created_at: 60.days.ago, deactivated_at: nil)
+    purchaser = create(:user)
+
+    # Create subscription using factory (creates payment_option automatically)
     subscription = create(:subscription,
                           link: product,
-                          user: create(:user),
-                          created_at: created_at,
-                          deactivated_at: deactivated_at)
-    payment_option = create(:payment_option, subscription: subscription, price: price)
-    subscription.update!(last_payment_option: payment_option)
+                          user: purchaser,
+                          price: price)
+
+    # Update subscription with test data using update! (not update_columns which may be read-only)
+    subscription.deactivated_at = deactivated_at
+    subscription.created_at = created_at
+    subscription.updated_at = created_at
+    subscription.save!(validate: false, touch: false)
+
+    # Create a minimal purchase directly in DB, bypassing all validations and callbacks
+    # This is indexed in Elasticsearch and subscription fields are pulled via association
+    purchase_attrs = {
+      link_id: product.id,
+      subscription_id: subscription.id,
+      purchaser_id: purchaser.id,
+      seller_id: product.user.id,
+      created_at: created_at,
+      updated_at: created_at,
+      succeeded_at: created_at,
+      flags: 4,  # Flag 3: is_original_subscription_purchase (2^2 = 4)
+      purchase_state: "subscription_purchase_successful",
+      price_cents: price.price_cents,
+      displayed_price_cents: price.price_cents,
+      total_transaction_cents: price.price_cents,
+      shipping_cents: 0,
+      tax_cents: 0,
+      gumroad_tax_cents: 0,
+      fee_cents: 0,
+      email: purchaser.email,
+      stripe_fingerprint: "test_fp",
+      stripe_transaction_id: "test_txn",
+      card_type: "visa",
+      card_visual: "****4242",
+      ip_address: "127.0.0.1",
+      browser_guid: SecureRandom.uuid
+    }
+
+    # Insert directly into DB to completely bypass validations/callbacks
+    Purchase.insert(purchase_attrs)
+
     subscription
   end
 
