@@ -18,6 +18,7 @@ import { useLoggedInUser } from "$app/components/LoggedInUser";
 import { showAlert } from "$app/components/server-components/Alert";
 import { Layout as SettingsLayout } from "$app/components/Settings/Layout";
 import { TypeSafeOptionSelect } from "$app/components/TypeSafeOptionSelect";
+import { Dropdown } from "$app/components/ui/Dropdown";
 import Placeholder from "$app/components/ui/Placeholder";
 
 type Products = { permalink: string; name: string }[];
@@ -94,7 +95,7 @@ const ThirdPartyAnalyticsPage = ({ settings_pages, third_party_analytics, produc
               </label>
             }
           >
-            <div className="paragraphs mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled">
+            <Dropdown className="paragraphs">
               <fieldset>
                 <legend>
                   <label htmlFor={`${uid}googleAnalyticsId`}>Google Analytics Property ID</label>
@@ -133,7 +134,7 @@ const ThirdPartyAnalyticsPage = ({ settings_pages, third_party_analytics, produc
                 />
                 Send 'Purchase' events for free ($0) sales
               </label>
-            </div>
+            </Dropdown>
           </Details>
         </section>
         <section className="p-4! md:p-8!">
@@ -157,7 +158,7 @@ const ThirdPartyAnalyticsPage = ({ settings_pages, third_party_analytics, produc
               </label>
             }
           >
-            <div className="paragraphs mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled">
+            <Dropdown className="paragraphs">
               <fieldset>
                 <legend>
                   <label htmlFor={`${uid}facebookMetaTag`}>Facebook Business</label>
@@ -173,7 +174,7 @@ const ThirdPartyAnalyticsPage = ({ settings_pages, third_party_analytics, produc
                 />
                 <small>Enter meta tag containing the Facebook domain verification code.</small>
               </fieldset>
-            </div>
+            </Dropdown>
           </Details>
         </section>
         <section className="p-4! md:p-8!">

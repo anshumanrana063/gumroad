@@ -9,6 +9,7 @@ import { Modal } from "$app/components/Modal";
 import { Popover } from "$app/components/Popover";
 import { Select } from "$app/components/Select";
 import { Toggle } from "$app/components/Toggle";
+import { Dropdown } from "$app/components/ui/Dropdown";
 import { useUserAgentInfo } from "$app/components/UserAgent";
 
 export type RefundPolicy = {
@@ -52,7 +53,7 @@ export const RefundPolicySelector = ({
         </Toggle>
       }
     >
-      <div className="paragraphs mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled">
+      <Dropdown className="paragraphs">
         <fieldset>
           <legend>
             <label htmlFor={`${uid}-max-refund-period-in-days`}>Refund period</label>
@@ -133,7 +134,7 @@ export const RefundPolicySelector = ({
             onMouseLeave={() => setShowPreview(false)}
           />
         </fieldset>
-      </div>
+      </Dropdown>
     </Details>
   );
 };

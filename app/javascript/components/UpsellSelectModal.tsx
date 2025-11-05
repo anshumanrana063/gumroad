@@ -12,6 +12,7 @@ import { Modal } from "$app/components/Modal";
 import { RecurrencePriceValue } from "$app/components/ProductEdit/state";
 import { Select } from "$app/components/Select";
 import { showAlert } from "$app/components/server-components/Alert";
+import { Dropdown } from "$app/components/ui/Dropdown";
 import { useRunOnce } from "$app/components/useRunOnce";
 
 export type ProductOption = {
@@ -169,13 +170,13 @@ export const UpsellSelectModal = ({
           }
         >
           {discount && selectedProduct ? (
-            <div className="relative mt-2 !max-w-sm rounded border border-parent-border bg-background p-4 text-contrast-filled">
+            <Dropdown className="!max-w-sm">
               <DiscountInput
                 discount={discount}
                 setDiscount={(newDiscount: InputtedDiscount) => setDiscount(newDiscount)}
                 currencyCode={selectedProduct.currency_code}
               />
-            </div>
+            </Dropdown>
           ) : null}
         </Details>
       </fieldset>

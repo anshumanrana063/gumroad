@@ -6,6 +6,7 @@ import { Details } from "$app/components/Details";
 import { PriceInput } from "$app/components/PriceInput";
 import { InstallmentPlanEditor } from "$app/components/ProductEdit/ProductTab/InstallmentPlanEditor";
 import { Toggle } from "$app/components/Toggle";
+import { Dropdown } from "$app/components/ui/Dropdown";
 
 export const PriceEditor = ({
   priceCents,
@@ -59,8 +60,7 @@ export const PriceEditor = ({
           </Toggle>
         }
       >
-        <div
-          className="mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled"
+        <Dropdown
           style={{
             display: "grid",
             gap: "var(--spacer-4)",
@@ -81,7 +81,7 @@ export const PriceEditor = ({
               onChange={setSuggestedPriceCents}
             />
           </fieldset>
-        </div>
+        </Dropdown>
       </Details>
       {eligibleForInstallmentPlans ? (
         <InstallmentPlanEditor

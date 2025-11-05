@@ -35,6 +35,7 @@ import { Popover } from "$app/components/Popover";
 import { applySelection } from "$app/components/Product/ConfigurationSelector";
 import { Select } from "$app/components/Select";
 import { CrossSellModal, UpsellModal } from "$app/components/server-components/CheckoutPage";
+import { Dropdown } from "$app/components/ui/Dropdown";
 import { PageHeader } from "$app/components/ui/PageHeader";
 import Placeholder from "$app/components/ui/Placeholder";
 import { useDebouncedCallback } from "$app/components/useDebouncedCallback";
@@ -866,9 +867,9 @@ const Form = ({
                     }
                   >
                     {discount ? (
-                      <div className="relative mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled">
+                      <Dropdown>
                         <DiscountInput discount={discount} setDiscount={setDiscount} currencyCode="usd" />
-                      </div>
+                      </Dropdown>
                     ) : null}
                   </Details>
                 </fieldset>

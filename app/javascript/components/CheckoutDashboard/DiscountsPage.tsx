@@ -32,6 +32,7 @@ import { Popover } from "$app/components/Popover";
 import { PriceInput } from "$app/components/PriceInput";
 import { Select, Option } from "$app/components/Select";
 import { TypeSafeOptionSelect } from "$app/components/TypeSafeOptionSelect";
+import { Dropdown } from "$app/components/ui/Dropdown";
 import { PageHeader } from "$app/components/ui/PageHeader";
 import Placeholder from "$app/components/ui/Placeholder";
 import { useDebouncedCallback } from "$app/components/useDebouncedCallback";
@@ -982,7 +983,7 @@ const Form = ({
                 </label>
               }
             >
-              <div className="mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled">
+              <Dropdown>
                 <fieldset className={cx({ danger: maxQuantity.error })}>
                   <legend>
                     <label htmlFor={`${uid}quantity`}>Quantity</label>
@@ -998,7 +999,7 @@ const Form = ({
                     )}
                   </NumberInput>
                 </fieldset>
-              </div>
+              </Dropdown>
             </Details>
             <Details
               className="toggle"
@@ -1015,8 +1016,7 @@ const Form = ({
                 </label>
               }
             >
-              <div
-                className="mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled"
+              <Dropdown
                 style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fit, minmax(var(--dynamic-grid), 1fr))",
@@ -1059,7 +1059,7 @@ const Form = ({
                     aria-invalid={expiresAt.error ?? false}
                   />
                 </fieldset>
-              </div>
+              </Dropdown>
             </Details>
             <Details
               className="toggle"
@@ -1076,7 +1076,7 @@ const Form = ({
                 </label>
               }
             >
-              <div className="mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled">
+              <Dropdown>
                 <fieldset className={cx({ danger: minimumAmount.error })}>
                   <legend>
                     <label htmlFor={`${uid}minimumAmount`}>Minimum amount</label>
@@ -1090,7 +1090,7 @@ const Form = ({
                     hasError={minimumAmount.error ?? false}
                   />
                 </fieldset>
-              </div>
+              </Dropdown>
             </Details>
             <Details
               className="toggle"
@@ -1107,7 +1107,7 @@ const Form = ({
                 </label>
               }
             >
-              <div className="mt-2 rounded border border-parent-border bg-background p-4 text-contrast-filled">
+              <Dropdown>
                 <fieldset className={cx({ danger: minimumQuantity.error })}>
                   <legend>
                     <label htmlFor={`${uid}minimumQuantity`}>Minimum quantity per product</label>
@@ -1128,7 +1128,7 @@ const Form = ({
                     )}
                   </NumberInput>
                 </fieldset>
-              </div>
+              </Dropdown>
             </Details>
           </fieldset>
         </section>
