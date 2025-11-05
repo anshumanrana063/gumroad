@@ -5,7 +5,12 @@ import { classNames } from "$app/utils/classNames";
 export const Dropdown = ({ children, className = "", ...props }: React.ComponentPropsWithoutRef<"div">) => (
   <div
     className={classNames(
-      "relative mt-2 max-w-[calc(100vw-2*var(--spacer-4))] rounded border border-parent-border bg-background p-4 before:absolute before:bottom-full before:left-3 before:border-r-[length:var(--spacer-2)] before:border-b-[length:var(--spacer-2)] before:border-l-[length:var(--spacer-2)] before:border-r-transparent before:border-b-parent-border before:border-l-transparent before:content-['']",
+      "relative mt-2 max-w-screen",
+      "rounded border border-parent-border bg-background p-4",
+      "before:absolute before:bottom-full before:left-3 before:content-['']",
+      "before:border-l-8 before:border-l-transparent",
+      "before:border-r-8 before:border-r-transparent",
+      "before:border-b-8 before:border-b-parent-border",
       className,
     )}
     {...props}
