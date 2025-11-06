@@ -139,9 +139,13 @@ class CreatorAnalytics::Churn
             }
           },
           new_by_date: {
-            # Filter to only subscriptions created in the date range
             filter: {
-              range: { created_at: { gte: date_range_start.to_s, lte: date_range_end.to_s } }
+              range: {
+                created_at: {
+                  gte: date_range_start.to_s,
+                  lte: date_range_end.to_s
+                }
+              }
             },
             aggs: {
               by_date: {
@@ -207,10 +211,8 @@ class CreatorAnalytics::Churn
               { terms: { product_id: subscription_products.pluck(:id) } },
               { term: { seller_id: user.id } },
               { exists: { field: "subscription_id" } },
-              # Query original subscription purchases (not recurring charges)
               { term: { not_subscription_or_original_subscription_purchase: true } },
-              # Created before or on this date
-              { range: { created_at: { lte: date.to_s } } }
+              { range: { created_at: { lt: date.to_s } } }
             ],
             should: [
               { bool: { must_not: { exists: { field: "subscription_deactivated_at" } } } },
@@ -257,8 +259,13 @@ class CreatorAnalytics::Churn
       total_new = 0
       running_active = 0
 
+      # Sort dates to ensure chronological processing
+      sorted_dates = daily_data_by_date.keys.sort
+
       # First pass: get totals and initial active count
-      daily_data_by_date.each do |date, data|
+      sorted_dates.each do |date|
+        data = daily_data_by_date[date]
+
         if date == start_date
           running_active = data[:active_at_start] || 0
         end
@@ -269,7 +276,9 @@ class CreatorAnalytics::Churn
       end
 
       # Second pass: calculate churn rates with running totals
-      daily_data_by_date.each do |date, data|
+      sorted_dates.each do |date|
+        data = daily_data_by_date[date]
+
         if date == start_date
           running_active = data[:active_at_start] || 0
         end

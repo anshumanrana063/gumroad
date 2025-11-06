@@ -4,20 +4,19 @@ module ChurnTestHelpers
   def create_active_subscription(product:, price:, created_at: 60.days.ago, deactivated_at: nil)
     purchaser = create(:user)
 
-    # Create subscription using factory (creates payment_option automatically)
     subscription = create(:subscription,
                           link: product,
                           user: purchaser,
                           price: price)
 
-    # Update subscription with test data using update! (not update_columns which may be read-only)
+    allow(subscription).to receive(:send_notification_webhook)
+    allow(subscription).to receive(:send_ended_notification_webhook)
+
     subscription.deactivated_at = deactivated_at
     subscription.created_at = created_at
     subscription.updated_at = created_at
     subscription.save!(validate: false, touch: false)
 
-    # Create a minimal purchase directly in DB, bypassing all validations and callbacks
-    # This is indexed in Elasticsearch and subscription fields are pulled via association
     purchase_attrs = {
       link_id: product.id,
       subscription_id: subscription.id,
@@ -26,7 +25,7 @@ module ChurnTestHelpers
       created_at: created_at,
       updated_at: created_at,
       succeeded_at: created_at,
-      flags: 4,  # Flag 3: is_original_subscription_purchase (2^2 = 4)
+      flags: 4,
       purchase_state: "subscription_purchase_successful",
       price_cents: price.price_cents,
       displayed_price_cents: price.price_cents,
@@ -44,7 +43,6 @@ module ChurnTestHelpers
       browser_guid: SecureRandom.uuid
     }
 
-    # Insert directly into DB to completely bypass validations/callbacks
     Purchase.insert(purchase_attrs)
 
     subscription
@@ -67,7 +65,6 @@ module ChurnTestHelpers
     )
   end
 
-  # Helper for system tests to verify churn metrics
   def expect_churn_metrics(churn_rate:, last_period_rate:, revenue_lost:, churned_users:)
     within_section("Churn rate") { expect(page).to have_text("#{churn_rate}%") }
     within_section("Last period churn rate") { expect(page).to have_text("#{last_period_rate}%") }
@@ -75,39 +72,37 @@ module ChurnTestHelpers
     within_section("Churned users") { expect(page).to have_text(churned_users.to_s) }
   end
 
-  # Setup standard test scenario with known churn data
-  # Returns hash with :active, :new, and :churned subscription arrays
   def setup_churn_scenario(monthly_product:, yearly_product:, monthly_price:, yearly_price:, base_date: "2023-12-01")
-    # Create 2 active subscriptions (started before period)
+    period_start = base_date.is_a?(String) ? Date.parse(base_date) : base_date
+    before_period = (period_start - 5.days).to_s + " 12:00:00"
+
     active_sub1 = create_active_subscription(
       product: monthly_product,
       price: monthly_price,
-      created_at: "#{base_date} 12:00:00"
+      created_at: before_period
     )
     active_sub2 = create_active_subscription(
       product: monthly_product,
       price: monthly_price,
-      created_at: "#{base_date} 12:00:00"
+      created_at: before_period
     )
 
-    # Create 1 new subscription (started during period)
     new_sub = create_new_subscription(
       product: monthly_product,
       price: monthly_price,
       created_at: "2023-12-16 12:00:00"
     )
 
-    # Create 2 churned subscriptions (1 monthly, 1 yearly)
     churned_sub1 = create_churned_subscription(
       product: monthly_product,
       price: monthly_price,
-      created_at: "#{base_date} 12:00:00",
+      created_at: before_period,
       deactivated_at: "2023-12-20 12:00:00"
     )
     churned_sub2 = create_churned_subscription(
       product: yearly_product,
       price: yearly_price,
-      created_at: "#{base_date} 12:00:00",
+      created_at: before_period,
       deactivated_at: "2023-12-25 12:00:00"
     )
 
