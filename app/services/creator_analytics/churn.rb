@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 # Calculates customer churn rate metrics for subscription products using Elasticsearch.
-# Follows CreatorAnalytics::Following pattern with inline caching for large sellers.
 #
 # Churn rate formula (per Stripe):
 #   (Churned Customers / Total Base Customers) × 100
@@ -114,7 +113,6 @@ class CreatorAnalytics::Churn
       result
     end
 
-    # Query Elasticsearch for churn data across date range (following Following pattern)
     # ONE query for all dates using date_histogram
     def query_churn_for_date_range(dates)
       date_range_start = dates.min
