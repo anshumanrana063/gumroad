@@ -327,9 +327,30 @@ class LinksController < ApplicationController
 
     redirect_to bundle_path(@product.external_id) if @product.is_bundle?
 
-    @title = @product.name
-
+    @title = "#{@product.name} - Product"
     @presenter = ProductPresenter.new(product: @product, pundit_user:)
+
+    render inertia: "Products/Edit/Index", props: @presenter.edit_props
+  end
+
+  def edit_content
+    fetch_product_by_unique_permalink
+    authorize @product
+
+    @title = "#{@product.name} - Content"
+    @presenter = ProductPresenter.new(product: @product, pundit_user:)
+
+    render inertia: "Products/Edit/Content", props: @presenter.edit_props
+  end
+
+  def edit_share
+    fetch_product_by_unique_permalink
+    authorize @product
+
+    @title = "#{@product.name} - Share"
+    @presenter = ProductPresenter.new(product: @product, pundit_user:)
+
+    render inertia: "Products/Edit/Share", props: @presenter.edit_props
   end
 
   def update
