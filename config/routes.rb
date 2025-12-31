@@ -357,11 +357,7 @@ Rails.application.routes.draw do
     resources :test_pings, only: [:create]
 
     # followers
-    resources :followers, only: [:index, :destroy], format: :json do
-      collection do
-        get "search"
-      end
-    end
+    resources :followers, only: [:index, :destroy], format: :json
 
     post "/follow_from_embed_form", to: "followers#from_embed_form", as: :follow_user_from_embed_form
     post "/follow", to: "followers#create", as: :follow_user

@@ -1,16 +1,15 @@
-import { usePage } from "@inertiajs/react";
+import { router, usePage, useForm } from "@inertiajs/react";
 import debounce from "lodash/debounce";
 import * as React from "react";
 import { cast } from "ts-safe-cast";
 
-import { deleteFollower, fetchFollowers, Follower } from "$app/data/followers";
+import { Follower } from "$app/data/followers";
 
 import { Button } from "$app/components/Button";
 import { CopyToClipboard } from "$app/components/CopyToClipboard";
 import { useCurrentSeller } from "$app/components/CurrentSeller";
 import { ExportSubscribersPopover } from "$app/components/Followers/ExportSubscribersPopover";
 import { Icon } from "$app/components/Icons";
-import { LoadingSpinner } from "$app/components/LoadingSpinner";
 import { useLoggedInUser } from "$app/components/LoggedInUser";
 import { Popover } from "$app/components/Popover";
 import { showAlert } from "$app/components/server-components/Alert";
@@ -62,59 +61,92 @@ const Layout = ({
   );
 };
 
-type Props = { followers: Follower[]; per_page: number; total: number };
+type Props = {
+  followers: Follower[];
+  total: number;
+  current_page: number;
+  per_page: number;
+  search_query: string;
+  has_more: boolean;
+};
 
 export default function FollowersPage() {
-  const { followers: initialFollowers, per_page, total } = cast<Props>(usePage().props);
+  const { followers, total, current_page, search_query, has_more } = cast<Props>(usePage().props);
   const userAgentInfo = useUserAgentInfo();
 
-  const [loading, setLoading] = React.useState(false);
-  const [followers, setFollowers] = React.useState<Follower[]>(initialFollowers);
   const [selectedFollowerId, setSelectedFollowerId] = React.useState<string | null>(null);
   const [searchBoxOpen, setSearchBoxOpen] = React.useState(false);
-  const [searchQuery, setSearchQuery] = React.useState("");
-  const [totalCount, setTotalCount] = React.useState(total);
-  const [totalFilteredCount, setTotalFilteredCount] = React.useState(total);
-  const [removing, setRemoving] = React.useState(false);
-  const [page, setPage] = React.useState(1);
+  const [localSearchValue, setLocalSearchValue] = React.useState(search_query);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
   const selectedFollower = followers.find((follower) => follower.id === selectedFollowerId);
+
+  const searchForm = useForm({ email: search_query });
+  const deleteForm = useForm({});
 
   React.useEffect(() => {
     if (searchBoxOpen) searchInputRef.current?.focus();
   }, [searchBoxOpen]);
 
-  const loadFollowers = async (email: string, page = 1) => {
-    try {
-      const response = await fetchFollowers({ email, page });
-      setPage(page);
-      setFollowers(page === 1 ? response.paged_followers : [...followers, ...response.paged_followers]);
-      setTotalFilteredCount(response.total_count);
-    } catch {
-      showAlert("Sorry, something went wrong. Please try again.", "error");
+  // Sync local search value with server state
+  React.useEffect(() => {
+    setLocalSearchValue(search_query);
+  }, [search_query]);
+
+  const navigateToSearch = (email: string) => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (email.trim()) {
+      params.set("email", email.trim());
+    } else {
+      params.delete("email");
     }
-    setLoading(false);
+
+    // Reset to page 1 when searching
+    params.delete("page");
+
+    const url = new URL(window.location.href);
+    url.search = params.toString();
+    router.visit(url.toString(), {
+      preserveState: true,
+      preserveScroll: true,
+      only: ["followers", "total", "current_page", "per_page", "search_query", "has_more", "total_pages"],
+    });
   };
 
-  const debouncedLoadFollowers = React.useCallback(debounce(loadFollowers, 500), []);
-  React.useEffect(() => {
-    setLoading(true);
-    void debouncedLoadFollowers(searchQuery);
-  }, [searchQuery]);
+  // Pagination navigation function - uses visit with preserve options to avoid full reloads
+  const navigateToPage = (page: number) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("page", page.toString());
 
-  const removeFollower = async (id: string) => {
-    setRemoving(true);
-    try {
-      await deleteFollower(id);
-      setTotalCount(totalCount - 1);
-      setTotalFilteredCount(totalFilteredCount - 1);
-      setFollowers(followers.filter((follower) => follower.id !== id));
-      setSelectedFollowerId(null);
-      showAlert("Follower removed!", "success");
-    } catch {
-      showAlert("Failed to remove follower.", "error");
-    }
-    setRemoving(false);
+    const url = new URL(window.location.href);
+    url.search = params.toString();
+    router.visit(url.toString(), {
+      preserveState: true,
+      preserveScroll: true,
+      only: ["followers", "total", "current_page", "per_page", "search_query", "has_more", "total_pages"],
+    });
+  };
+
+  // Debounced search handler
+  const debouncedSearch = React.useCallback(
+    debounce((query: string) => navigateToSearch(query), 300),
+    [],
+  );
+
+  // Search input handler
+  const handleSearchChange = (value: string) => {
+    setLocalSearchValue(value);
+    searchForm.setData("email", value);
+    debouncedSearch(value);
+  };
+
+  const handleDeleteFollower = (followerId: string) => {
+    setSelectedFollowerId(null);
+    deleteForm.delete(Routes.follower_path({ id: followerId }), {
+      preserveScroll: true,
+      onSuccess: () => showAlert("Follower removed!", "success"),
+      onError: () => showAlert("Failed to remove follower.", "error"),
+    });
   };
 
   const currentSeller = useCurrentSeller();
@@ -124,7 +156,7 @@ export default function FollowersPage() {
       title="Subscribers"
       actions={
         <>
-          {(followers.length > 0 || searchQuery.length > 0) && (
+          {followers.length > 0 || localSearchValue.length > 0 || searchBoxOpen ? (
             <Popover
               open={searchBoxOpen}
               onToggle={setSearchBoxOpen}
@@ -139,14 +171,14 @@ export default function FollowersPage() {
             >
               <input
                 ref={searchInputRef}
-                value={searchQuery}
+                value={localSearchValue}
                 autoFocus
                 type="text"
                 placeholder="Search followers"
-                onChange={(evt) => setSearchQuery(evt.target.value)}
+                onChange={(evt) => handleSearchChange(evt.target.value)}
               />
             </Popover>
-          )}
+          ) : null}
           <Popover
             aria-label="Export"
             trigger={
@@ -175,14 +207,10 @@ export default function FollowersPage() {
       }
     >
       <div className="space-y-4 p-4 md:p-8">
-        {loading ? (
-          <div className="flex justify-center">
-            <LoadingSpinner className="size-20" />
-          </div>
-        ) : followers.length > 0 ? (
+        {followers.length > 0 ? (
           <div>
             <Table>
-              <TableCaption>All subscribers ({totalCount.toLocaleString(userAgentInfo.locale)})</TableCaption>
+              <TableCaption>All subscribers ({total.toLocaleString(userAgentInfo.locale)})</TableCaption>
               <TableHeader>
                 <TableRow>
                   <TableHead>Email</TableHead>
@@ -202,8 +230,13 @@ export default function FollowersPage() {
                 ))}
               </TableBody>
             </Table>
-            {page * per_page < totalFilteredCount ? (
-              <Button color="primary" onClick={() => void loadFollowers(searchQuery, page + 1)} className="mt-6">
+            {has_more ? (
+              <Button
+                color="primary"
+                onClick={() => navigateToPage(current_page + 1)}
+                disabled={searchForm.processing}
+                className="mt-6"
+              >
                 Load more
               </Button>
             ) : null}
@@ -221,11 +254,11 @@ export default function FollowersPage() {
                       <div>{selectedFollower.email}</div>
                       <Button
                         color="danger"
-                        onClick={() => void removeFollower(selectedFollower.id)}
-                        disabled={removing}
+                        onClick={() => handleDeleteFollower(selectedFollower.id)}
+                        disabled={deleteForm.processing}
                         className="mt-2"
                       >
-                        {removing ? "Removing..." : "Remove follower"}
+                        {deleteForm.processing ? "Removing..." : "Remove follower"}
                       </Button>
                     </div>
                   </div>
@@ -238,7 +271,7 @@ export default function FollowersPage() {
             <figure>
               <img src={placeholder} />
             </figure>
-            {searchQuery.length === 0 ? (
+            {search_query.length === 0 ? (
               <>
                 <h2>Manage all of your followers in one place.</h2>
                 Interacting with and serving your audience is an important part of running your business.

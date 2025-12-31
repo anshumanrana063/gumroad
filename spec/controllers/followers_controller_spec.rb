@@ -30,24 +30,6 @@ describe FollowersController, inertia: true do
         ))
       end
     end
-
-    describe "GET search" do
-      context "logged in" do
-        it "returns followers with matching emails" do
-          follower = create(:active_follower, user: seller)
-          get :search, params: { email: follower.email }
-          expect(response.parsed_body["paged_followers"][0]["email"]).to eq(follower.email)
-        end
-      end
-
-      context "logged out" do
-        it "redirects user to login" do
-          sign_out(seller)
-          get :search, params: { email: "sample" }
-          expect(response).to redirect_to(login_path(next: "/followers/search?email=sample"))
-        end
-      end
-    end
   end
 
   context "within consumer area" do
