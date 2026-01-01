@@ -395,7 +395,6 @@ Rails.application.routes.draw do
     get "/collaborators/incomings", to: "collaborators#index"
     get "/collaborators/*other", to: "collaborators#index"
 
-    get "/emails/*other", to: "emails#index" # route handled by react-router
     get "/dashboard/utm_links/*other", to: "utm_links#index" # route handled by react-router
     get "/communities/*other", to: "communities#index" # route handled by react-router
 
@@ -765,7 +764,6 @@ Rails.application.routes.draw do
     # audience
     get "/audience" => redirect("/dashboard/audience")
     get "/dashboard/audience", to: "audience#index", as: :audience_dashboard
-    get "/audience/data/by_date/:start_time/:end_time", to: "audience#data_by_date", as: "audience_data_by_date"
     post "/audience/export", to: "audience#export", as: :audience_export
     get "/dashboard/consumption" => redirect("/dashboard/audience")
 
@@ -799,7 +797,13 @@ Rails.application.routes.draw do
     get "/communities(/:seller_id/:community_id)", to: "communities#index", as: :community
 
     # emails
-    get "/emails", to: "emails#index", as: :emails
+    resources :emails, only: [:index, :new, :create, :edit, :update, :destroy] do
+      collection do
+        get :published
+        get :scheduled
+        get :drafts
+      end
+    end
     get "/posts", to: redirect("/emails")
 
     # workflows
@@ -821,7 +825,6 @@ Rails.application.routes.draw do
 
     # balances
     get "/payouts", to: "balance#index", as: :balance
-    get "/payouts/payments", to: "balance#payments_paged", as: :payments_paged
     resources :instant_payouts, only: [:create]
     namespace :payouts do
       resources :exportables, only: [:index]
@@ -909,7 +912,7 @@ Rails.application.routes.draw do
           resources :incomings, only: [:index]
         end
 
-        resources :installments, only: [:index, :new, :edit, :create, :update, :destroy] do
+        resources :installments, only: [] do
           member do
             resource :audience_count, only: [:show], controller: "installments/audience_counts", as: :installment_audience_count
             resource :preview_email, only: [:create], controller: "installments/preview_emails", as: :installment_preview_email
@@ -922,6 +925,7 @@ Rails.application.routes.draw do
         resources :products, only: [:show] do
           resources :product_posts, only: [:index]
           resources :existing_product_files, only: [:index]
+          resource :receipt_preview, only: [:show]
         end
         resources :utm_links, only: [:index, :new, :create, :edit, :update, :destroy] do
           collection do
