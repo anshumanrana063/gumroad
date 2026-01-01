@@ -11,7 +11,7 @@ class FollowersController < ApplicationController
   before_action :fetch_follower, only: %i[confirm cancel destroy]
   before_action :set_user_and_custom_domain_config, only: :new
 
-  FOLLOWERS_PER_PAGE = 20
+  FOLLOWERS_PER_PAGE = 10
 
   def index
     authorize [:audience, Follower]

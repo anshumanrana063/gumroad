@@ -71,14 +71,19 @@ type Props = {
 };
 
 export default function FollowersPage() {
-  const { followers, total, current_page, search_query, has_more } = cast<Props>(usePage().props);
+  const { followers: initialFollowers, current_page, search_query, has_more } = cast<Props>(usePage().props);
   const userAgentInfo = useUserAgentInfo();
+
+  const [allFollowers, setAllFollowers] = React.useState(initialFollowers);
+  const [currentHasMore, setCurrentHasMore] = React.useState(has_more);
+  const [currentPage, setCurrentPage] = React.useState(current_page);
+  const [isLoadingMore, setIsLoadingMore] = React.useState(false);
 
   const [selectedFollowerId, setSelectedFollowerId] = React.useState<string | null>(null);
   const [searchBoxOpen, setSearchBoxOpen] = React.useState(false);
   const [localSearchValue, setLocalSearchValue] = React.useState(search_query);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
-  const selectedFollower = followers.find((follower) => follower.id === selectedFollowerId);
+  const selectedFollower = allFollowers.find((follower) => follower.id === selectedFollowerId);
 
   const searchForm = useForm({ email: search_query });
   const deleteForm = useForm({});
@@ -90,6 +95,13 @@ export default function FollowersPage() {
   // Sync local search value with server state
   React.useEffect(() => {
     setLocalSearchValue(search_query);
+  }, [search_query]);
+
+  React.useEffect(() => {
+    setAllFollowers(initialFollowers);
+    setCurrentHasMore(has_more);
+    setCurrentPage(current_page);
+    setIsLoadingMore(false);
   }, [search_query]);
 
   const navigateToSearch = (email: string) => {
@@ -113,17 +125,31 @@ export default function FollowersPage() {
     });
   };
 
-  // Pagination navigation function - uses visit with preserve options to avoid full reloads
-  const navigateToPage = (page: number) => {
+  // Load more function - appends new followers to the array
+  const handleLoadMore = () => {
+    if (!currentHasMore || isLoadingMore) return;
+
+    setIsLoadingMore(true);
+
+    const nextPage = currentPage + 1;
     const params = new URLSearchParams(window.location.search);
-    params.set("page", page.toString());
+    params.set("page", nextPage.toString());
 
     const url = new URL(window.location.href);
     url.search = params.toString();
+
     router.visit(url.toString(), {
       preserveState: true,
       preserveScroll: true,
-      only: ["followers", "total", "current_page", "per_page", "search_query", "has_more", "total_pages"],
+      only: ["followers", "has_more"],
+      onSuccess: (page) => {
+        const responseProps = cast<Pick<Props, "followers" | "has_more">>(page.props);
+        setAllFollowers((prev) => [...prev, ...responseProps.followers]); // APPEND
+        setCurrentHasMore(responseProps.has_more);
+        setCurrentPage(nextPage);
+        setIsLoadingMore(false);
+      },
+      onError: () => setIsLoadingMore(false),
     });
   };
 
@@ -156,7 +182,7 @@ export default function FollowersPage() {
       title="Subscribers"
       actions={
         <>
-          {followers.length > 0 || localSearchValue.length > 0 || searchBoxOpen ? (
+          {allFollowers.length > 0 || localSearchValue.length > 0 || searchBoxOpen ? (
             <Popover
               open={searchBoxOpen}
               onToggle={setSearchBoxOpen}
@@ -207,10 +233,10 @@ export default function FollowersPage() {
       }
     >
       <div className="space-y-4 p-4 md:p-8">
-        {followers.length > 0 ? (
+        {allFollowers.length > 0 ? (
           <div>
             <Table>
-              <TableCaption>All subscribers ({total.toLocaleString(userAgentInfo.locale)})</TableCaption>
+              <TableCaption>All subscribers ({allFollowers.length.toLocaleString(userAgentInfo.locale)})</TableCaption>
               <TableHeader>
                 <TableRow>
                   <TableHead>Email</TableHead>
@@ -218,7 +244,7 @@ export default function FollowersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {followers.map((follower) => (
+                {allFollowers.map((follower) => (
                   <TableRow
                     key={follower.id}
                     onClick={() => setSelectedFollowerId(follower.id === selectedFollowerId ? null : follower.id)}
@@ -230,14 +256,14 @@ export default function FollowersPage() {
                 ))}
               </TableBody>
             </Table>
-            {has_more ? (
+            {currentHasMore ? (
               <Button
                 color="primary"
-                onClick={() => navigateToPage(current_page + 1)}
-                disabled={searchForm.processing}
+                onClick={handleLoadMore}
+                disabled={isLoadingMore || searchForm.processing}
                 className="mt-6"
               >
-                Load more
+                {isLoadingMore ? "Loading..." : "Load more"}
               </Button>
             ) : null}
             {selectedFollower ? (
